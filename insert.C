@@ -23,13 +23,23 @@ const Status QU_Insert(const string & relation,
     //rearrange attribute list to match order of attributes in relation
     //insertfilescan of record created using the rearranged attribute list
     //end
-
+    
+    //Check for NULLs in attrList
+    for(int k; k < attrCnt; k ++)
+    {
+        if(attrList[i].attrValue == NULL)
+        {
+            return NULLATTR;  //If NULL attr, reject the insertion.
+        }
+    }
+    
+    
     Status status;
     RelDesc rd;
     AttrDesc *attrs;
     int attrCnt;
-    
-    attrInfo sortedAttrList[attrCnt];
+    Record rec;
+
     
     // get relation data
     if ((status = relCat->getInfo(relation, rd)) != OK) return status;
@@ -38,19 +48,27 @@ const Status QU_Insert(const string & relation,
     if ((status = attrCat->getRelInfo(rd.relName, attrCnt, attrs)) != OK)
         return status;
     
-    for(int i; i < attrCnt; i++)
+    //rearrange attribute list to match order of attributes in relation
+    //an place the attribute data and total attribute length into a record
+    int recDataOffset = 0
+    for(int i = 0; i < attrCnt; i++)
     {
-        for(int j; j < attrCnt; j++)
+        for(int j = 0; j < attrCnt; j++)
         {
-            if(attrs[i].attrName == attrList[j].attrName)
+            if(0 == strcmp(attrs[i].attrName,attrList[j].attrName))
             {
-                memcpy(sortedAttrList[i], attrList[j]);
+                memcpy(rec.data + recDataOffset, attrList.attrValue, attrList.attrLen)
+                rec.length += attrList.attrLen;  
+                recDataOffset += attrList.attrLen;
             }
         }
     }
     
-    //Unfinished.  Still need to create record and insert it.
-    
+    //Create InsertFileScan and insert the record
+    InsertFileScan ifs(relation, status);
+    RID outRid;
+    status = ifs.insertRecord(rec, outRid);
+    if(status != OK){return status;}
     
 // part 6
 return OK;

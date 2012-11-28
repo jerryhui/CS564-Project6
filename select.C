@@ -29,6 +29,17 @@ const Status QU_Select(const string & result,
    // Qu_Select sets up things and then calls ScanSelect to do the actual work
     cout << "Doing QU_Select " << endl;
 
+    // convert search criteria according to type
+    // reject invalid format
+    
+    // open result heap file (with InsertScan)
+    // open relation heap file (with HeapFileScan)
+    
+    // sequentially go through heap file
+    //      if current record matches search criteria
+    //          store into "result"
+    
+    return OK;
 }
 
 

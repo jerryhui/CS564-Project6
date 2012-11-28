@@ -21,7 +21,7 @@ const Status ScanSelect(const string & result,
  * 	an error code otherwise
  *
  * LOG:
- * 2012/11/28 JH: First implementation of overhead info collection.
+ * 2012/11/28 JH: First implementation.
  */
 
 const Status QU_Select(const string & result, 
@@ -40,25 +40,22 @@ const Status QU_Select(const string & result,
     Status status;
     AttrDesc *attrDesc;
     AttrDesc projAttrDesc[projCnt];
-    int attrCnt,i,reclen,searchAttr;
+    int attrCnt,i,j,reclen,searchAttr;
     
     // get info of all attributes in requested relation
     if ( (status=attrCat->getRelInfo(attr->relName, attrCnt, attrDesc)) != OK)
         return status;
     
-    // get info of all attributes to project
-    for (i=0; i<projCnt; i++) {
-        status = attrCat->getInfo(projNames[i].relName, projNames[i].attrName,projAttrDesc[i]);
-        if (status!=OK)
-            return status;
-    }
-    
-    // loop through attributes
-    //  get attribute info about the attr to search for
-    //  calculate length of a record
     reclen=0;
     for (i=0; i<attrCnt; i++) {
-        reclen += attrDesc[i].attrLen;
+        for (j=0; j<projCnt; j++)
+            if (strcmp(attrDesc[i].attrName,projNames[j].attrName)==0) {
+                // if current attribute is part of projection:
+                // 1) calculate length of a record
+                // 2) fill in projection attr desc
+                reclen += attrDesc[i].attrLen;
+                projAttrDesc[j] = attrDesc[i];
+            }
         if (strcmp(attrDesc[i].attrName,attr->attrName) == 0)
             searchAttr=i;
     }
@@ -79,13 +76,57 @@ const Status ScanSelect(const string & result,
 {
     cout << "Doing HeapFileScan Selection using ScanSelect()" << endl;
     
-    // open result heap file (with InsertScan)
-    // open relation heap file (with HeapFileScan)
+    Status status;
+    RID rid;
+    Record rec;
+    int i;
+    Datatype t;
     
+    Record resultRec;
+    char outputData[reclen];
+    resultRec.data = (void*)outputData;
+    resultRec.length = reclen;
+    int outputOffset;
     
-    // sequentially go through heap file
-    //      if current record matches search criteria
-    //          store into "result"
+    // open relation file to read, result file to write
+    InsertFileScan resultFile(result,status);
+    if (status!=OK) return status;
+    HeapFileScan relFile(attrDesc->relName,status);
+    if (status!=OK) return status;
+    
+    // set up scan condition
+    switch (attrDesc->attrType) {
+        case 0: t = INTEGER; break;
+        case 1: t = FLOAT; break;
+        case 2: t = STRING; break;
+    }
+    status=relFile.startScan(attrDesc->attrOffset,
+                             attrDesc->attrLen,
+                             t, filter, op);
+    if  ( status != OK ) return status;
+    
+    while (relFile.scanNext(rid) == OK) {
+        // current record matches search criteria
+
+        // get record
+        if ( (status = relFile.getRecord(rec)) != OK)
+            return status;
+        
+        // 1) create new record from projection
+        outputOffset = 0;
+        for (i=0; i<projCnt; i++) {
+            memcpy(outputData + outputOffset,
+                   (char*)rec.data + projNames[i].attrOffset,
+                   projNames[i].attrLen);
+            outputOffset += projNames[i].attrLen;
+        }
+        
+        // 2) store into result file
+        RID outRID;
+        status = resultFile.insertRecord(resultRec, outRID);
+        if (status!=OK)
+            return status;
+    }
 
     return OK;
 }

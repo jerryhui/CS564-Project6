@@ -40,6 +40,8 @@ const Status QU_Insert(const string & relation,
     int allAttrCnt;
     Record rec;
 
+	
+
     
     // get relation data
     if ((status = relCat->getInfo(relation, rd)) != OK) return status;
@@ -48,6 +50,15 @@ const Status QU_Insert(const string & relation,
     if ((status = attrCat->getRelInfo(rd.relName, allAttrCnt, attrs)) != OK)
         return status;
     
+    rec.length = 0;
+    for(int i = 0; i < attrCnt; i ++)
+    {
+        rec.length += attrs[i].attrLen;
+    }
+
+    char outData[rec.length];
+    rec.data = &outData;
+
     //rearrange attribute list to match order of attributes in relation
     //an place the attribute data and total attribute length into a record
     int recDataOffset = 0;
@@ -57,8 +68,7 @@ const Status QU_Insert(const string & relation,
         {
             if(0 == strcmp(attrs[i].attrName,attrList[j].attrName))
             {
-                memcpy((char*)rec.data + recDataOffset, attrList[j].attrValue, attrs[i].attrLen);
-                rec.length += attrs[i].attrLen;
+                memcpy((char*)outData + recDataOffset, attrList[j].attrValue, attrs[i].attrLen);
                 recDataOffset += attrs[i].attrLen;
             }
         }

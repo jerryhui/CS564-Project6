@@ -100,9 +100,9 @@ const Status ScanSelect(const string & result,
     // set up scan condition
     if (attrDesc!=NULL) {
         switch (attrDesc->attrType) {
-            case 0: t = INTEGER; break;
-            case 1: t = FLOAT; break;
-            case 2: t = STRING; break;
+            case 1: t = INTEGER; break;
+            case 2: t = FLOAT; break;
+            case 0: t = STRING; break;
         }
         status=relFile.startScan(attrDesc->attrOffset,
                                  attrDesc->attrLen,

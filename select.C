@@ -63,6 +63,12 @@ const Status QU_Select(const string & result,
     }
     
     // pass info along to ScanSelect for the actual work
+    
+    if (attr==NULL) // unconditional select
+        return ScanSelect(result, projCnt, projAttrDesc,
+                          &attrDesc[searchAttr],
+                          EQ, NULL, reclen);
+
     return ScanSelect(result, projCnt, projAttrDesc,
                       &attrDesc[searchAttr],
                       op, attrValue, reclen);
@@ -98,20 +104,15 @@ const Status ScanSelect(const string & result,
     if (status!=OK) return status;
 
     // set up scan condition
-    if (attrDesc!=NULL) {
-        switch (attrDesc->attrType) {
-            case 1: t = INTEGER; break;
-            case 2: t = FLOAT; break;
-            case 0: t = STRING; break;
-        }
-        status=relFile.startScan(attrDesc->attrOffset,
-                                 attrDesc->attrLen,
-                                 t, filter, op);
-    } else {
-        // no condition is given, do an unconditional scan
-        status=relFile.startScan(0,0,STRING, NULL, EQ);
+    switch (attrDesc->attrType) {
+        case 1: t = INTEGER; break;
+        case 2: t = FLOAT; break;
+        case 0: t = STRING; break;
     }
-        
+    status=relFile.startScan(attrDesc->attrOffset,
+                             attrDesc->attrLen,
+                             t, filter, op);
+
     if  ( status != OK ) return status;
     
     while (relFile.scanNext(rid) == OK) {

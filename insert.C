@@ -25,11 +25,11 @@ const Status QU_Insert(const string & relation,
     //end
     
     //Check for NULLs in attrList
-    for(int k; k < attrCnt; k ++)
+    for(int k=0; k < attrCnt; k ++)
     {
-        if(attrList[i].attrValue == NULL)
+        if(attrList[k].attrValue == NULL)
         {
-            return NULLATTR;  //If NULL attr, reject the insertion.
+            return ATTRNOTFOUND;  //If NULL attr, reject the insertion.
         }
     }
     
@@ -37,7 +37,7 @@ const Status QU_Insert(const string & relation,
     Status status;
     RelDesc rd;
     AttrDesc *attrs;
-    int attrCnt;
+    int allAttrCnt;
     Record rec;
 
     
@@ -45,21 +45,21 @@ const Status QU_Insert(const string & relation,
     if ((status = relCat->getInfo(relation, rd)) != OK) return status;
     
     // get attribute data
-    if ((status = attrCat->getRelInfo(rd.relName, attrCnt, attrs)) != OK)
+    if ((status = attrCat->getRelInfo(rd.relName, allAttrCnt, attrs)) != OK)
         return status;
     
     //rearrange attribute list to match order of attributes in relation
     //an place the attribute data and total attribute length into a record
-    int recDataOffset = 0
+    int recDataOffset = 0;
     for(int i = 0; i < attrCnt; i++)
     {
         for(int j = 0; j < attrCnt; j++)
         {
             if(0 == strcmp(attrs[i].attrName,attrList[j].attrName))
             {
-                memcpy(rec.data + recDataOffset, attrList.attrValue, attrList.attrLen)
-                rec.length += attrList.attrLen;  
-                recDataOffset += attrList.attrLen;
+                memcpy((char*)rec.data + recDataOffset, attrList[j].attrValue, attrList[j].attrLen);
+                rec.length += attrList[j].attrLen;
+                recDataOffset += attrList[j].attrLen;
             }
         }
     }

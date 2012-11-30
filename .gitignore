@@ -1,0 +1,8 @@
+
+*.o
+
+dbcreate
+
+minirel
+
+dbdestroy

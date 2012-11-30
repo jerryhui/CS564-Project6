@@ -57,9 +57,9 @@ const Status QU_Insert(const string & relation,
         {
             if(0 == strcmp(attrs[i].attrName,attrList[j].attrName))
             {
-                memcpy((char*)rec.data + recDataOffset, attrList[j].attrValue, attrList[j].attrLen);
-                rec.length += attrList[j].attrLen;
-                recDataOffset += attrList[j].attrLen;
+                memcpy((char*)rec.data + recDataOffset, attrList[j].attrValue, attrs[i].attrLen);
+                rec.length += attrs[i].attrLen;
+                recDataOffset += attrs[i].attrLen;
             }
         }
     }

@@ -66,7 +66,7 @@ const Status QU_Select(const string & result,
     
     if (attr==NULL) // unconditional select
         return ScanSelect(result, projCnt, projAttrDesc,
-                          &attrDesc[searchAttr],
+                          &projAttrDesc[0],
                           EQ, NULL, reclen);
 
     return ScanSelect(result, projCnt, projAttrDesc,

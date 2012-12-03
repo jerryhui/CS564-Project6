@@ -72,7 +72,7 @@ const Status QU_Insert(const string & relation,
         {
             if(0 == strcmp(attrs[i].attrName,attrList[j].attrName))
             {   
-		switch (attrs[i].type)
+		switch (attrs[i].attrType)
 		{
 		    case 1: //integer
 			intBuf = atoi((char*)attrList[j].attrValue);

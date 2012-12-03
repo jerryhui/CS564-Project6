@@ -40,7 +40,8 @@ const Status QU_Insert(const string & relation,
     int allAttrCnt;
     Record rec;
 
-	
+    int intBuf;
+    float floatBuf;
 
     
     // get relation data
@@ -59,6 +60,9 @@ const Status QU_Insert(const string & relation,
     char outData[rec.length];
     rec.data = &outData;
 
+
+    void* machineReadableInputPtr;
+
     //rearrange attribute list to match order of attributes in relation
     //an place the attribute data and total attribute length into a record
     int recDataOffset = 0;
@@ -67,8 +71,24 @@ const Status QU_Insert(const string & relation,
         for(int j = 0; j < attrCnt; j++)
         {
             if(0 == strcmp(attrs[i].attrName,attrList[j].attrName))
-            {
-                memcpy((char*)outData + recDataOffset, attrList[j].attrValue, attrs[i].attrLen);
+            {   
+		switch (attrs[i].type)
+		{
+		    case 1: //integer
+			intBuf = atoi((char*)attrList[j].attrValue);
+			machineReadableInputPtr = &intBuf;
+			break;
+
+		    case 2: //float
+			floatBuf = atof((char*)attrList[j].attrValue);
+			machineReadableInputPtr = &floatBuf;
+			break;
+
+		    case 0: //string
+			machineReadableInputPtr = attrList[j].attrValue;
+			break;
+		}
+                memcpy((char*)outData + recDataOffset, (char*)machineReadableInputPtr, attrs[i].attrLen);
                 recDataOffset += attrs[i].attrLen;
             }
         }

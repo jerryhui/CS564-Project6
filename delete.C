@@ -11,6 +11,7 @@
  *
  * Log:
  * 2012/11/26 JH: First implementation.
+ * 2012/12/03 JH: Condition value conversion added.
  */
 const Status QU_Delete(const string & relation, 
 		       const string & attrName, 
@@ -26,7 +27,28 @@ const Status QU_Delete(const string & relation,
     HeapFileScan *hfs = new HeapFileScan(relation, status);
     if (status!=OK) return status;
     
-    hfs->startScan(0, 0, type, attrValue, op);
+    // find attribute info to set up scan
+    AttrDesc aDesc;
+    void* filter;
+    int iVal;
+    float fVal;
+    switch (type) {
+        case STRING: filter = (void*)attrValue; break;
+        case INTEGER: {
+            iVal = atoi(attrValue);
+            filter = &iVal;
+            break;
+        }
+        case FLOAT: {
+            fVal = atof(attrValue);
+            filter = &fVal;
+            break;
+        }
+    }
+    status = attrCat->getInfo(relation, attrName, aDesc);
+    if (status!=OK) return status;
+    
+    hfs->startScan(aDesc.attrOffset, aDesc.attrLen, type, (char*)filter, op);
     // if error occurs during startScan, the loop below is skipped and exit steps are taken
     
     // search for records that match given condition

@@ -106,28 +106,37 @@ const Status ScanSelect(const string & result,
     void *realFilter;
     
     // set up scan condition
-    switch (attrDesc->attrType) {
-        case 1: {
-            t = INTEGER;
-            int iVal = atoi(filter);
-            realFilter = &iVal;
-            break;
+    if (filter!=NULL) {
+        // if a specific filter is given, perform possible data conversion
+        
+        switch (attrDesc->attrType) {
+            case 1: {
+                t = INTEGER;
+                int iVal = atoi(filter);
+                realFilter = &iVal;
+                break;
+            }
+            case 2: {
+                t = FLOAT;
+                float fVal = atof(filter);
+                realFilter = &fVal;
+                break;
+            }
+            case 0: {
+                t = STRING;
+                realFilter = (void*)filter;
+                break;
+            }
         }
-        case 2: {
-            t = FLOAT;
-            float fVal = atof(filter);
-            realFilter = &fVal;
-            break;
-        }
-        case 0: {
-            t = STRING;
-            realFilter = (void*)filter;
-            break;
-        }
+        status=relFile.startScan(attrDesc->attrOffset,
+                                 attrDesc->attrLen,
+                                 t, (char*)realFilter, op);
+    } else {
+        // no specific filter is given; set up scan for sequential scan
+        status=relFile.startScan(attrDesc->attrOffset,
+                                 attrDesc->attrLen,
+                                 t, NULL, op);
     }
-    status=relFile.startScan(attrDesc->attrOffset,
-                             attrDesc->attrLen,
-                             t, (char*)realFilter, op);
 
     if  ( status != OK ) return status;
     

@@ -103,15 +103,31 @@ const Status ScanSelect(const string & result,
     HeapFileScan relFile(projNames[0].relName,status);
     if (status!=OK) return status;
 
+    void *realFilter;
+    
     // set up scan condition
     switch (attrDesc->attrType) {
-        case 1: t = INTEGER; break;
-        case 2: t = FLOAT; break;
-        case 0: t = STRING; break;
+        case 1: {
+            t = INTEGER;
+            int iVal = atoi(filter);
+            realFilter = &iVal;
+            break;
+        }
+        case 2: {
+            t = FLOAT;
+            float fVal = atof(filter);
+            realFilter = &fVal;
+            break;
+        }
+        case 0: {
+            t = STRING;
+            realFilter = (void*)filter;
+            break;
+        }
     }
     status=relFile.startScan(attrDesc->attrOffset,
                              attrDesc->attrLen,
-                             t, filter, op);
+                             t, (char*)realFilter, op);
 
     if  ( status != OK ) return status;
     

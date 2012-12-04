@@ -17,13 +17,6 @@ const Status QU_Insert(const string & relation,
 /*  Insert a tuple with the given attribute values (in attrList) in relation. The value of the attribute is supplied in the attrValue member of the attrInfo structure. Since the order of the attributes in attrList[] may not be the same as in the relation, you might have to rearrange them before insertion. If no value is specified for an attribute, you should reject the insertion as Minirel does not implement NULLs.
  */
     
-    
-    //get relation
-    //get order of attributes in relation
-    //rearrange attribute list to match order of attributes in relation
-    //insertfilescan of record created using the rearranged attribute list
-    //end
-    
     //Check for NULLs in attrList
     for(int k=0; k < attrCnt; k ++)
     {
@@ -39,8 +32,9 @@ const Status QU_Insert(const string & relation,
     AttrDesc *attrs;
     int allAttrCnt;
     Record rec;
-
-    int intBuf;
+    
+    // create buffers for variable conversion
+    int intBuf;       
     float floatBuf;
 
     
@@ -51,20 +45,22 @@ const Status QU_Insert(const string & relation,
     if ((status = attrCat->getRelInfo(rd.relName, allAttrCnt, attrs)) != OK)
         return status;
     
+    //calculate the total record length
     rec.length = 0;
     for(int i = 0; i < attrCnt; i ++)
     {
         rec.length += attrs[i].attrLen;
     }
 
+    // allocate space for the record
     char outData[rec.length];
     rec.data = &outData;
 
-
+    // create pointer to be used for the source parameter of memcpy
     void* machineReadableInputPtr;
 
     //rearrange attribute list to match order of attributes in relation
-    //an place the attribute data and total attribute length into a record
+    //place the attribute data and total attribute length into a record
     int recDataOffset = 0;
     for(int i = 0; i < attrCnt; i++)
     {
@@ -72,6 +68,8 @@ const Status QU_Insert(const string & relation,
         {
             if(0 == strcmp(attrs[i].attrName,attrList[j].attrName))
             {   
+		//Switch statement because all input comes in as strings
+		//ints and floats need to be converted
 		switch (attrs[i].attrType)
 		{
 		    case 1: //integer

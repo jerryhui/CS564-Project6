@@ -27,13 +27,15 @@ const Status QU_Delete(const string & relation,
     HeapFileScan *hfs = new HeapFileScan(relation, status);
     if (status!=OK) return status;
     
-    // find attribute info to set up scan
     AttrDesc aDesc;
     void* filter;
     int iVal;
     float fVal;
     
     if (attrName!="") {
+        // a search condition is specified;
+        // find attribute info to set up scan
+        
         switch (type) {
             case STRING: filter = (void*)attrValue; break;
             case INTEGER: {
@@ -50,8 +52,10 @@ const Status QU_Delete(const string & relation,
         status = attrCat->getInfo(relation, attrName, aDesc);
         if (status!=OK) return status;
         hfs->startScan(aDesc.attrOffset, aDesc.attrLen, type, (char*)filter, op);
-    } else
+    } else {
+        
         hfs->startScan(0, 0, type, NULL, op);
+    }
     
     // if error occurs during startScan, the loop below is skipped and exit steps are taken
     

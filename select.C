@@ -22,6 +22,7 @@ const Status ScanSelect(const string & result,
  *
  * LOG:
  * 2012/11/28 JH: First implementation.
+ * 2012/12/03 JH: Various debugs.
  */
 
 const Status QU_Select(const string & result, 
